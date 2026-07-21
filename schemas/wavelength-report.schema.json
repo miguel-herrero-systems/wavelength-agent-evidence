@@ -1,0 +1,877 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wavelength-evidence:schema:report:0.1",
+  "title": "Wavelength evidence report 0.1",
+  "description": "Documentation schema for the deterministic, redacted derived report returned by analyzeCapture.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "specVersion",
+    "reportId",
+    "capturedAt",
+    "input",
+    "subject",
+    "claims",
+    "summary",
+    "publicDisclosure",
+    "economicAction",
+    "disclaimerCode"
+  ],
+  "properties": {
+    "specVersion": {
+      "const": "wavelength-evidence.report/0.1"
+    },
+    "reportId": {
+      "type": "string",
+      "pattern": "^wer-[a-f0-9]{24}$"
+    },
+    "capturedAt": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$",
+      "$comment": "Copied from capture.capturedAt after ISO-shape and JavaScript Date.parse validation."
+    },
+    "input": {
+      "$ref": "#/$defs/input"
+    },
+    "subject": {
+      "$ref": "#/$defs/subject"
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/prepareObservedClaim"
+        },
+        {
+          "$ref": "#/$defs/paymentHashClaim"
+        },
+        {
+          "$ref": "#/$defs/amountClaim"
+        },
+        {
+          "$ref": "#/$defs/preimageClaim"
+        },
+        {
+          "$ref": "#/$defs/walletClaim"
+        },
+        {
+          "$ref": "#/$defs/settlementClaim"
+        },
+        {
+          "$ref": "#/$defs/httpClaim"
+        },
+        {
+          "$ref": "#/$defs/jobClaim"
+        },
+        {
+          "$ref": "#/$defs/payerIdentityClaim"
+        },
+        {
+          "$ref": "#/$defs/obligationClaim"
+        }
+      ],
+      "items": false
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "proven",
+        "notProven",
+        "unknown"
+      ],
+      "properties": {
+        "proven": {
+          "$ref": "#/$defs/claimCount"
+        },
+        "notProven": {
+          "$ref": "#/$defs/claimCount"
+        },
+        "unknown": {
+          "$ref": "#/$defs/claimCount"
+        }
+      },
+      "$comment": "The generator guarantees that the three counts sum to the ten claims."
+    },
+    "publicDisclosure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy",
+        "omittedFields",
+        "note"
+      ],
+      "properties": {
+        "policy": {
+          "const": "REDACTED_DERIVED_REPORT"
+        },
+        "omittedFields": {
+          "const": [
+            "invoice",
+            "send_intent_id",
+            "preimage",
+            "L402 authorization",
+            "macaroon",
+            "captureId",
+            "interactionId",
+            "URL path, query, and fragment"
+          ]
+        },
+        "note": {
+          "const": "The report contains derived results, commitments, and coarse metadata; it omits bearer credentials and raw payment secrets."
+        }
+      }
+    },
+    "economicAction": {
+      "const": "NOT_EVALUATED"
+    },
+    "disclaimerCode": {
+      "const": "EVIDENCE_ANALYSIS_ONLY"
+    }
+  },
+  "$defs": {
+    "boundedString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$"
+    },
+    "sha256Commitment": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "captureIdCommitment",
+        "captureDigest",
+        "mode",
+        "implementation",
+        "network",
+        "interface",
+        "sourceVersion"
+      ],
+      "properties": {
+        "captureIdCommitment": {
+          "$ref": "#/$defs/sha256Commitment"
+        },
+        "captureDigest": {
+          "$ref": "#/$defs/sha256Commitment"
+        },
+        "mode": {
+          "enum": [
+            "SYNTHETIC_DOCUMENTATION_FIXTURE",
+            "IMPORTED_UNATTESTED"
+          ]
+        },
+        "implementation": {
+          "const": "lightninglabs/wavelength"
+        },
+        "network": {
+          "const": "signet"
+        },
+        "interface": {
+          "enum": [
+            "wallet-api",
+            "wavecli"
+          ]
+        },
+        "sourceVersion": {
+          "const": "a1094c9f7787d8b91cecc1ee7ae9117e811478d3"
+        }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interactionIdCommitment",
+        "resourceOrigin",
+        "resourceCommitment",
+        "requestDigest"
+      ],
+      "properties": {
+        "interactionIdCommitment": {
+          "$ref": "#/$defs/sha256Commitment"
+        },
+        "resourceOrigin": {
+          "$ref": "#/$defs/resourceOrigin"
+        },
+        "resourceCommitment": {
+          "$ref": "#/$defs/sha256Commitment"
+        },
+        "requestDigest": {
+          "$ref": "#/$defs/sha256Commitment"
+        }
+      }
+    },
+    "claimCount": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "resourceOrigin": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "format": "uri",
+      "anyOf": [
+        {
+          "pattern": "^https://[^/?#]+$"
+        },
+        {
+          "pattern": "^http://(?:localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?$"
+        }
+      ],
+      "not": {
+        "pattern": "^[A-Za-z][A-Za-z0-9+.-]*://[^/?#]*@"
+      },
+      "$comment": "analyzeCapture publishes only URL.origin; it omits credentials, path, query, and fragment."
+    },
+    "claim": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "status",
+        "reasonCode",
+        "evidence",
+        "limitations"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "status": {
+          "enum": [
+            "PROVEN",
+            "NOT_PROVEN",
+            "UNKNOWN"
+          ]
+        },
+        "reasonCode": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/boundedString"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "maxItems": 16,
+          "items": {
+            "$ref": "#/$defs/boundedString"
+          }
+        }
+      }
+    },
+    "prepareObservedClaim": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/claim"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "prepare-send-observed"
+            },
+            "type": {
+              "const": "PREPARE_SEND_OBSERVED"
+            },
+            "status": {
+              "const": "PROVEN"
+            },
+            "reasonCode": {
+              "const": "PREPARE_SEND_CAPTURE_VALID"
+            },
+            "evidence": {
+              "const": [
+                "prepareSend"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "paymentHashClaim": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/claim"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "payment-hash-binding"
+            },
+            "type": {
+              "const": "PREPARE_ACTIVITY_PAYMENT_HASH_MATCH"
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/paymentHashUnknown"
+            },
+            {
+              "$ref": "#/$defs/paymentHashProven"
+            },
+            {
+              "$ref": "#/$defs/paymentHashNotProven"
+            }
+          ]
+        }
+      ]
+    },
+    "paymentHashUnknown": {
+      "properties": {
+        "status": {
+          "const": "UNKNOWN"
+        },
+        "reasonCode": {
+          "const": "TERMINAL_ACTIVITY_NOT_OBSERVED"
+        },
+        "evidence": {
+          "const": []
+        }
+      }
+    },
+    "paymentHashProven": {
+      "properties": {
+        "status": {
+          "const": "PROVEN"
+        },
+        "reasonCode": {
+          "const": "PAYMENT_HASH_MATCHED"
+        },
+        "evidence": {
+          "const": [
+            "prepareSend.paymentHash",
+            "terminalActivity.paymentHash"
+          ]
+        }
+      }
+    },
+    "paymentHashNotProven": {
+      "properties": {
+        "status": {
+          "const": "NOT_PROVEN"
+        },
+        "reasonCode": {
+          "const": "PAYMENT_HASH_MISMATCH"
+        },
+        "evidence": {
+          "const": [
+            "prepareSend.paymentHash",
+            "terminalActivity.paymentHash"
+          ]
+        }
+      }
+    },
+    "amountClaim": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/claim"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "amount-binding"
+            },
+            "type": {
+              "const": "PREPARE_ACTIVITY_AMOUNT_MATCH"
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "status": {
+                  "const": "UNKNOWN"
+                },
+                "reasonCode": {
+                  "const": "TERMINAL_ACTIVITY_NOT_OBSERVED"
+                },
+                "evidence": {
+                  "const": []
+                }
+              }
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "PROVEN"
+                },
+                "reasonCode": {
+                  "const": "PAYMENT_AMOUNT_MATCHED"
+                },
+                "evidence": {
+                  "const": [
+                    "prepareSend.amountSat",
+                    "terminalActivity.amountSat"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "NOT_PROVEN"
+                },
+                "reasonCode": {
+                  "const": "PAYMENT_AMOUNT_MISMATCH"
+                },
+                "evidence": {
+                  "const": [
+                    "prepareSend.amountSat",
+                    "terminalActivity.amountSat"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "preimageClaim": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/claim"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "preimage-binding"
+            },
+            "type": {
+              "const": "PREIMAGE_MATCHES_PAYMENT_HASH"
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/preimageUnknown"
+            },
+            {
+              "$ref": "#/$defs/preimageProven"
+            },
+            {
+              "$ref": "#/$defs/preimageNotProven"
+            }
+          ]
+        }
+      ]
+    },
+    "preimageUnknown": {
+      "properties": {
+        "status": {
+          "const": "UNKNOWN"
+        },
+        "reasonCode": {
+          "enum": [
+            "PAYMENT_PREIMAGE_NOT_OBSERVED",
+            "TERMINAL_ACTIVITY_NOT_BOUND_TO_PREPARE"
+          ]
+        },
+        "evidence": {
+          "const": []
+        }
+      }
+    },
+    "preimageProven": {
+      "properties": {
+        "status": {
+          "const": "PROVEN"
+        },
+        "reasonCode": {
+          "const": "SHA256_PREIMAGE_MATCHED_PAYMENT_HASH"
+        },
+        "evidence": {
+          "const": [
+            "prepareSend.paymentHash",
+            "terminalActivity.preimage"
+          ]
+        }
+      }
+    },
+    "preimageNotProven": {
+      "properties": {
+        "status": {
+          "const": "NOT_PROVEN"
+        },
+        "reasonCode": {
+          "const": "SHA256_PREIMAGE_MISMATCH"
+        },
+        "evidence": {
+          "const": [
+            "prepareSend.paymentHash",
+            "terminalActivity.preimage"
+          ]
+        }
+      }
+    },
+    "walletClaim": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/claim"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "wallet-terminal-success"
+            },
+            "type": {
+              "const": "WALLET_TERMINAL_SUCCESS"
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "status": {
+                  "const": "UNKNOWN"
+                },
+                "reasonCode": {
+                  "enum": [
+                    "WALLET_TERMINAL_STATE_NOT_OBSERVED",
+                    "TERMINAL_ACTIVITY_NOT_BOUND_TO_PREPARE"
+                  ]
+                },
+                "evidence": {
+                  "const": []
+                }
+              }
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "PROVEN"
+                },
+                "reasonCode": {
+                  "const": "WAVELENGTH_RECORDED_COMPLETE"
+                },
+                "evidence": {
+                  "const": [
+                    "terminalActivity.status"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "NOT_PROVEN"
+                },
+                "reasonCode": {
+                  "const": "WAVELENGTH_RECORDED_FAILED"
+                },
+                "evidence": {
+                  "const": [
+                    "terminalActivity.status"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "settlementClaim": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/claim"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "settlement-rail"
+            },
+            "type": {
+              "const": "SETTLEMENT_RAIL_RECORDED"
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "status": {
+                  "const": "UNKNOWN"
+                },
+                "reasonCode": {
+                  "enum": [
+                    "SETTLEMENT_RAIL_NOT_RESOLVED",
+                    "TERMINAL_ACTIVITY_NOT_BOUND_TO_PREPARE"
+                  ]
+                },
+                "evidence": {
+                  "const": []
+                }
+              }
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "PROVEN"
+                },
+                "reasonCode": {
+                  "enum": [
+                    "WAVELENGTH_RECORDED_RAIL_LIGHTNING",
+                    "WAVELENGTH_RECORDED_RAIL_IN_ARK",
+                    "WAVELENGTH_RECORDED_RAIL_ONCHAIN",
+                    "WAVELENGTH_RECORDED_RAIL_CREDIT",
+                    "WAVELENGTH_RECORDED_RAIL_MIXED"
+                  ]
+                },
+                "evidence": {
+                  "const": [
+                    "terminalActivity.settlement"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "httpClaim": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/claim"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "http-access"
+            },
+            "type": {
+              "const": "HTTP_ACCESS_RESPONSE"
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "status": {
+                  "const": "UNKNOWN"
+                },
+                "reasonCode": {
+                  "enum": [
+                    "HTTP_RESPONSE_NOT_OBSERVED",
+                    "HTTP_PAYMENT_ORDER_NOT_ESTABLISHED"
+                  ]
+                },
+                "evidence": {
+                  "const": []
+                }
+              }
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "PROVEN"
+                },
+                "reasonCode": {
+                  "const": "BOUND_HTTP_SUCCESS_OBSERVED"
+                },
+                "evidence": {
+                  "const": [
+                    "httpObservation"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "NOT_PROVEN"
+                },
+                "reasonCode": {
+                  "const": "HTTP_REQUEST_BINDING_MISMATCH"
+                },
+                "evidence": {
+                  "const": [
+                    "interaction.requestDigest",
+                    "httpObservation.requestDigest"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "NOT_PROVEN"
+                },
+                "reasonCode": {
+                  "const": "BOUND_HTTP_NON_SUCCESS_OBSERVED"
+                },
+                "evidence": {
+                  "const": [
+                    "httpObservation"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "jobClaim": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/claim"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "job-terminal-success"
+            },
+            "type": {
+              "const": "CAPTURE_RECORDED_JOB_SUCCESS"
+            }
+          }
+        },
+        {
+          "oneOf": [
+            {
+              "properties": {
+                "status": {
+                  "const": "UNKNOWN"
+                },
+                "reasonCode": {
+                  "enum": [
+                    "JOB_TERMINAL_STATE_NOT_OBSERVED",
+                    "JOB_SOURCE_AUTHORITY_NOT_ESTABLISHED"
+                  ]
+                },
+                "evidence": {
+                  "const": []
+                }
+              }
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "PROVEN"
+                },
+                "reasonCode": {
+                  "const": "AUTHORITATIVE_SOURCE_REPORTED_SUCCESS"
+                },
+                "evidence": {
+                  "const": [
+                    "jobObservation"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "NOT_PROVEN"
+                },
+                "reasonCode": {
+                  "const": "JOB_REQUEST_BINDING_MISMATCH"
+                },
+                "evidence": {
+                  "const": [
+                    "interaction.requestDigest",
+                    "jobObservation.interactionRequestDigest"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "status": {
+                  "const": "NOT_PROVEN"
+                },
+                "reasonCode": {
+                  "const": "AUTHORITATIVE_SOURCE_REPORTED_FAILURE"
+                },
+                "evidence": {
+                  "const": [
+                    "jobObservation"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "payerIdentityClaim": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/claim"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "payer-identity"
+            },
+            "type": {
+              "const": "PAYER_IDENTITY"
+            },
+            "status": {
+              "const": "UNKNOWN"
+            },
+            "reasonCode": {
+              "const": "PAYER_IDENTITY_NOT_ESTABLISHED"
+            },
+            "evidence": {
+              "const": []
+            }
+          }
+        }
+      ]
+    },
+    "obligationClaim": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/claim"
+        },
+        {
+          "properties": {
+            "id": {
+              "const": "obligation-fulfilled"
+            },
+            "type": {
+              "const": "OBLIGATION_FULFILLED"
+            },
+            "status": {
+              "const": "UNKNOWN"
+            },
+            "reasonCode": {
+              "const": "COMMERCIAL_OBLIGATION_NOT_EVALUATED"
+            },
+            "evidence": {
+              "const": []
+            }
+          }
+        }
+      ]
+    }
+  }
+}

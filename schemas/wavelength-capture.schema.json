@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:wavelength-evidence:schema:capture:0.1",
+  "title": "Wavelength evidence capture 0.1",
+  "description": "Documentation schema for the normalized, private capture consumed by analyzeCapture. Runtime validation remains authoritative.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "specVersion",
+    "captureId",
+    "capturedAt",
+    "mode",
+    "source",
+    "interaction",
+    "prepareSend",
+    "limitations"
+  ],
+  "properties": {
+    "specVersion": {
+      "const": "wavelength-evidence.capture/0.1"
+    },
+    "captureId": {
+      "$ref": "#/$defs/id"
+    },
+    "capturedAt": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$",
+      "$comment": "Runtime validation applies this ISO shape and also requires JavaScript Date.parse to return a finite value."
+    },
+    "mode": {
+      "enum": [
+        "SYNTHETIC_DOCUMENTATION_FIXTURE",
+        "IMPORTED_UNATTESTED"
+      ]
+    },
+    "source": {
+      "$ref": "#/$defs/source"
+    },
+    "interaction": {
+      "$ref": "#/$defs/interaction"
+    },
+    "prepareSend": {
+      "$ref": "#/$defs/prepareSend"
+    },
+    "terminalActivity": {
+      "$ref": "#/$defs/terminalActivity"
+    },
+    "httpObservation": {
+      "$ref": "#/$defs/httpObservation"
+    },
+    "jobObservation": {
+      "$ref": "#/$defs/jobObservation"
+    },
+    "limitations": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {
+        "$ref": "#/$defs/boundedString"
+      }
+    }
+  },
+  "$defs": {
+    "boundedString": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$"
+    },
+    "sha256Commitment": {
+      "type": "string",
+      "pattern": "^sha256:[a-f0-9]{64}$"
+    },
+    "hex32": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "rail": {
+      "enum": [
+        "LIGHTNING",
+        "IN_ARK",
+        "ONCHAIN",
+        "CREDIT",
+        "MIXED",
+        "OFFCHAIN_UNKNOWN",
+        "UNKNOWN"
+      ]
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "implementation",
+        "network",
+        "interface",
+        "version",
+        "recorder"
+      ],
+      "properties": {
+        "implementation": {
+          "const": "lightninglabs/wavelength"
+        },
+        "network": {
+          "const": "signet"
+        },
+        "interface": {
+          "enum": [
+            "wallet-api",
+            "wavecli"
+          ]
+        },
+        "version": {
+          "const": "a1094c9f7787d8b91cecc1ee7ae9117e811478d3",
+          "description": "Pinned Wavelength source commit supported by profile version 0.1."
+        },
+        "recorder": {
+          "$ref": "#/$defs/boundedString"
+        }
+      }
+    },
+    "interaction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interactionId",
+        "resource",
+        "requestMethod",
+        "requestBodyDigest",
+        "requestDigest"
+      ],
+      "properties": {
+        "interactionId": {
+          "$ref": "#/$defs/id"
+        },
+        "resource": {
+          "$ref": "#/$defs/resourceUrl"
+        },
+        "requestMethod": {
+          "enum": [
+            "GET",
+            "HEAD",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE"
+          ]
+        },
+        "requestBodyDigest": {
+          "$ref": "#/$defs/sha256Commitment"
+        },
+        "requestDigest": {
+          "$ref": "#/$defs/sha256Commitment",
+          "$comment": "Runtime recomputes this as sha256Json({ method: requestMethod, resource, bodyDigest: requestBodyDigest })."
+        }
+      }
+    },
+    "prepareSend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sendIntentIdCommitment",
+        "amountSat",
+        "expectedFeeSat",
+        "feeKnown",
+        "expectedTotalOutflowSat",
+        "totalOutflowKnown",
+        "rail",
+        "quoteStatus",
+        "paymentHash",
+        "expiresAtUnix"
+      ],
+      "properties": {
+        "sendIntentIdCommitment": {
+          "$ref": "#/$defs/sha256Commitment",
+          "description": "Commitment to the private send_intent_id; the bearer-like raw value is not part of the normalized capture."
+        },
+        "invoiceCommitment": {
+          "$ref": "#/$defs/sha256Commitment",
+          "description": "Optional commitment to the invoice; the raw invoice is not part of this object."
+        },
+        "amountSat": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "expectedFeeSat": {
+          "$ref": "#/$defs/nonNegativeSafeInteger"
+        },
+        "feeKnown": {
+          "type": "boolean"
+        },
+        "expectedTotalOutflowSat": {
+          "$ref": "#/$defs/nonNegativeSafeInteger"
+        },
+        "totalOutflowKnown": {
+          "type": "boolean"
+        },
+        "rail": {
+          "$ref": "#/$defs/rail"
+        },
+        "quoteStatus": {
+          "enum": [
+            "COMPLETE",
+            "LOCAL_ONLY"
+          ]
+        },
+        "paymentHash": {
+          "$ref": "#/$defs/hex32"
+        },
+        "expiresAtUnix": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      },
+      "$comment": "When feeKnown and totalOutflowKnown are both true, runtime requires expectedTotalOutflowSat = amountSat + expectedFeeSat."
+    },
+    "terminalActivity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "activityId",
+        "status",
+        "kind",
+        "amountSat",
+        "feeSat",
+        "paymentHash",
+        "settlement"
+      ],
+      "properties": {
+        "activityId": {
+          "$ref": "#/$defs/boundedString"
+        },
+        "status": {
+          "enum": [
+            "COMPLETE",
+            "FAILED",
+            "PENDING",
+            "UNOBSERVED"
+          ]
+        },
+        "kind": {
+          "const": "SEND"
+        },
+        "amountSat": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "feeSat": {
+          "$ref": "#/$defs/nonNegativeSafeInteger"
+        },
+        "paymentHash": {
+          "$ref": "#/$defs/hex32"
+        },
+        "preimage": {
+          "$ref": "#/$defs/hex32",
+          "description": "Private witness accepted for analysis. analyzeCapture never copies it into the public report."
+        },
+        "settlement": {
+          "$ref": "#/$defs/rail"
+        }
+      }
+    },
+    "httpObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestDigest",
+        "status",
+        "responseBodyDigest",
+        "observedAfterPayment"
+      ],
+      "properties": {
+        "requestDigest": {
+          "$ref": "#/$defs/sha256Commitment"
+        },
+        "status": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 599
+        },
+        "responseBodyDigest": {
+          "$ref": "#/$defs/sha256Commitment"
+        },
+        "observedAfterPayment": {
+          "type": "boolean"
+        }
+      }
+    },
+    "jobObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "sourceId",
+        "sourceControl",
+        "authoritative",
+        "interactionRequestDigest"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "SUCCEEDED",
+            "FAILED",
+            "PENDING",
+            "UNOBSERVED"
+          ]
+        },
+        "sourceId": {
+          "$ref": "#/$defs/id"
+        },
+        "sourceControl": {
+          "enum": [
+            "PROVIDER",
+            "CLIENT",
+            "THIRD_PARTY",
+            "UNKNOWN"
+          ]
+        },
+        "authoritative": {
+          "type": "boolean"
+        },
+        "interactionRequestDigest": {
+          "$ref": "#/$defs/sha256Commitment",
+          "description": "Digest of the interaction request that the observed job result claims to answer."
+        }
+      }
+    },
+    "nonNegativeSafeInteger": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "resourceUrl": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096,
+      "format": "uri",
+      "anyOf": [
+        {
+          "pattern": "^[Hh][Tt][Tt][Pp][Ss]://"
+        },
+        {
+          "pattern": "^[Hh][Tt][Tt][Pp]://(?:[^/?#]*@)?(?:[Ll][Oo][Cc][Aa][Ll][Hh][Oo][Ss][Tt]|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?(?:[/?#]|$)"
+        }
+      ],
+      "not": {
+        "pattern": "^[A-Za-z][A-Za-z0-9+.-]*://[^/?#]*@"
+      },
+      "$comment": "Runtime accepts HTTPS, plus HTTP only when URL.hostname is localhost, 127.0.0.1, or [::1]."
+    }
+  }
+}

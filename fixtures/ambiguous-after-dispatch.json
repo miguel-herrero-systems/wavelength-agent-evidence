@@ -1,0 +1,47 @@
+{
+  "specVersion": "wavelength-evidence.capture/0.1",
+  "captureId": "fixture-ambiguous-after-dispatch",
+  "capturedAt": "2026-07-21T12:10:00Z",
+  "mode": "SYNTHETIC_DOCUMENTATION_FIXTURE",
+  "source": {
+    "implementation": "lightninglabs/wavelength",
+    "network": "signet",
+    "interface": "wallet-api",
+    "version": "a1094c9f7787d8b91cecc1ee7ae9117e811478d3",
+    "recorder": "hand-authored-from-wavelength-public-docs"
+  },
+  "interaction": {
+    "interactionId": "demo-ambiguous-after-dispatch",
+    "resource": "https://demo.example/wavelength/ambiguous",
+    "requestMethod": "GET",
+    "requestBodyDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "requestDigest": "sha256:85875a6183ddb174ca3c386e29650091f7398882a09be444f75b8d202ed87755"
+  },
+  "prepareSend": {
+    "sendIntentIdCommitment": "sha256:1534b9fbf00f9064bad8f4964c1b12167b4fe80ba55c625fe359f7e9cd00834a",
+    "invoiceCommitment": "sha256:5fc981ee4fbd38dec90671f6eb8a4569fc8c782e3fc66c35f671534f7f419cc7",
+    "amountSat": 3300,
+    "expectedFeeSat": 0,
+    "feeKnown": false,
+    "expectedTotalOutflowSat": 0,
+    "totalOutflowKnown": false,
+    "rail": "OFFCHAIN_UNKNOWN",
+    "quoteStatus": "LOCAL_ONLY",
+    "paymentHash": "9f72ea0cf49536e3c66c787f705186df9a4378083753ae9536d65b3ad7fcddc4",
+    "expiresAtUnix": 1784640600
+  },
+  "terminalActivity": {
+    "activityId": "activity-ambiguous-after-dispatch",
+    "status": "PENDING",
+    "kind": "SEND",
+    "amountSat": -3300,
+    "feeSat": 0,
+    "paymentHash": "9f72ea0cf49536e3c66c787f705186df9a4378083753ae9536d65b3ad7fcddc4",
+    "settlement": "OFFCHAIN_UNKNOWN"
+  },
+  "limitations": [
+    "Synthetic values derived from public field documentation; no Wavelength daemon or payment network was contacted.",
+    "Pending is intentionally not upgraded to failure or success after dispatch.",
+    "Retry safety and idempotency are outside this profile."
+  ]
+}

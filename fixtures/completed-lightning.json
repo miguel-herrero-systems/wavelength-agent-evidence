@@ -1,0 +1,60 @@
+{
+  "specVersion": "wavelength-evidence.capture/0.1",
+  "captureId": "fixture-completed-lightning",
+  "capturedAt": "2026-07-21T12:00:00Z",
+  "mode": "SYNTHETIC_DOCUMENTATION_FIXTURE",
+  "source": {
+    "implementation": "lightninglabs/wavelength",
+    "network": "signet",
+    "interface": "wavecli",
+    "version": "a1094c9f7787d8b91cecc1ee7ae9117e811478d3",
+    "recorder": "hand-authored-from-wavelength-public-docs"
+  },
+  "interaction": {
+    "interactionId": "demo-completed-lightning",
+    "resource": "https://demo.example/wavelength/report",
+    "requestMethod": "GET",
+    "requestBodyDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "requestDigest": "sha256:cfb84fdda598255991d095321cfcc8a365070c1d3cf01136d1d066b8d4709d8b"
+  },
+  "prepareSend": {
+    "sendIntentIdCommitment": "sha256:4c87c839e381569cbc8366265d3c3c7feda110980988737e567c8c697ba57661",
+    "invoiceCommitment": "sha256:2feb5bd9a22394b90eb531813a60b80c8631f8853eb25f2222d4dd190750d130",
+    "amountSat": 2100,
+    "expectedFeeSat": 4,
+    "feeKnown": true,
+    "expectedTotalOutflowSat": 2104,
+    "totalOutflowKnown": true,
+    "rail": "LIGHTNING",
+    "quoteStatus": "COMPLETE",
+    "paymentHash": "630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd",
+    "expiresAtUnix": 1784640000
+  },
+  "terminalActivity": {
+    "activityId": "activity-completed-lightning",
+    "status": "COMPLETE",
+    "kind": "SEND",
+    "amountSat": -2100,
+    "feeSat": 4,
+    "paymentHash": "630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd",
+    "preimage": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "settlement": "LIGHTNING"
+  },
+  "httpObservation": {
+    "requestDigest": "sha256:cfb84fdda598255991d095321cfcc8a365070c1d3cf01136d1d066b8d4709d8b",
+    "status": 200,
+    "responseBodyDigest": "sha256:1017980cde0a806fe7dbd85eaa54d19e3a53e0d636626d90d3fa61a6c81c64d5",
+    "observedAfterPayment": true
+  },
+  "jobObservation": {
+    "status": "SUCCEEDED",
+    "sourceId": "demo-provider-job-api",
+    "sourceControl": "PROVIDER",
+    "authoritative": true,
+    "interactionRequestDigest": "sha256:cfb84fdda598255991d095321cfcc8a365070c1d3cf01136d1d066b8d4709d8b"
+  },
+  "limitations": [
+    "Synthetic values derived from public field documentation; no Wavelength daemon or payment network was contacted.",
+    "The fixture demonstrates report semantics only and must not be presented as a live signet capture."
+  ]
+}

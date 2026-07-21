@@ -1,0 +1,21 @@
+{
+  "name": "wavelength-evidence-demo",
+  "version": "0.1.0",
+  "description": "A read-only evidence profile for Wavelength agent-payment captures.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "demo": "node src/cli.js demo --out reports/generated",
+    "test": "node --test test/analyze.test.js test/normalize.test.js test/cli.test.js",
+    "schema:check": "node scripts/validate-artifacts.js",
+    "check": "npm test && npm run demo && node src/cli.js verify-demo --dir reports/generated && npm run schema:check"
+  },
+  "devDependencies": {
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1"
+  }
+}

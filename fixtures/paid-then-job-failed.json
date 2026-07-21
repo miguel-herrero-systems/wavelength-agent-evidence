@@ -1,0 +1,61 @@
+{
+  "specVersion": "wavelength-evidence.capture/0.1",
+  "captureId": "fixture-paid-then-job-failed",
+  "capturedAt": "2026-07-21T12:05:00Z",
+  "mode": "SYNTHETIC_DOCUMENTATION_FIXTURE",
+  "source": {
+    "implementation": "lightninglabs/wavelength",
+    "network": "signet",
+    "interface": "wallet-api",
+    "version": "a1094c9f7787d8b91cecc1ee7ae9117e811478d3",
+    "recorder": "hand-authored-from-wavelength-public-docs"
+  },
+  "interaction": {
+    "interactionId": "demo-paid-job-failed",
+    "resource": "https://demo.example/wavelength/jobs",
+    "requestMethod": "POST",
+    "requestBodyDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "requestDigest": "sha256:f9ab2bab281e7b1f10439a2fa5c7b22b484402eb9838864881ed454fefd27712"
+  },
+  "prepareSend": {
+    "sendIntentIdCommitment": "sha256:4cee47af7f71a39ef3928bfadb389d440e0434374285dd6694e86ec0cc4d2134",
+    "invoiceCommitment": "sha256:37c26b5bd23265fecab56747a75376f4d09737c18107ee9d1ce34f212baf79ee",
+    "amountSat": 5000,
+    "expectedFeeSat": 2,
+    "feeKnown": true,
+    "expectedTotalOutflowSat": 5002,
+    "totalOutflowKnown": true,
+    "rail": "IN_ARK",
+    "quoteStatus": "COMPLETE",
+    "paymentHash": "02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc",
+    "expiresAtUnix": 1784640300
+  },
+  "terminalActivity": {
+    "activityId": "activity-paid-job-failed",
+    "status": "COMPLETE",
+    "kind": "SEND",
+    "amountSat": -5000,
+    "feeSat": 2,
+    "paymentHash": "02d449a31fbb267c8f352e9968a79e3e5fc95c1bbeaa502fd6454ebde5a4bedc",
+    "preimage": "1111111111111111111111111111111111111111111111111111111111111111",
+    "settlement": "IN_ARK"
+  },
+  "httpObservation": {
+    "requestDigest": "sha256:f9ab2bab281e7b1f10439a2fa5c7b22b484402eb9838864881ed454fefd27712",
+    "status": 202,
+    "responseBodyDigest": "sha256:1450d4277bd0c11ab03392eb42a3d2cddb53be5c0176f1ccf97979f52ae87b90",
+    "observedAfterPayment": true
+  },
+  "jobObservation": {
+    "status": "FAILED",
+    "sourceId": "demo-provider-job-api",
+    "sourceControl": "PROVIDER",
+    "authoritative": true,
+    "interactionRequestDigest": "sha256:f9ab2bab281e7b1f10439a2fa5c7b22b484402eb9838864881ed454fefd27712"
+  },
+  "limitations": [
+    "Synthetic values derived from public field documentation; no Wavelength daemon or payment network was contacted.",
+    "IN_ARK is deliberate: a BOLT-11-style payment target must not be treated as proof of the Lightning rail.",
+    "The fixture separates a completed wallet payment and accepted HTTP request from a failed deferred job."
+  ]
+}

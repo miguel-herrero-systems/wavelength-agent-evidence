@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+node_modules/
+coverage/
+.nyc_output/
+*.log
+
+# Generated and local-only evidence artifacts.
+reports/generated/
+reports/private/
+captures/raw/
+captures/private/
+*.private.json
+*.secret
+tmp/
