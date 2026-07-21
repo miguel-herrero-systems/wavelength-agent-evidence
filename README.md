@@ -1,5 +1,7 @@
 # Wavelength Agent Evidence
 
+[![CI](https://github.com/miguel-herrero-systems/wavelength-agent-evidence/actions/workflows/ci.yml/badge.svg)](https://github.com/miguel-herrero-systems/wavelength-agent-evidence/actions/workflows/ci.yml)
+
 A small, offline demo that turns exported Wavelength payment records into a deterministic evidence report for agent-to-service interactions.
 
 The central idea is intentionally narrow: **“the wallet recorded a completed payment” and “the provider fulfilled the job” are different claims**. The report keeps those claims separate, preserves ambiguous states, and never initiates an economic action.
