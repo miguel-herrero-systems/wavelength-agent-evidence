@@ -162,7 +162,10 @@ function preimageBinding(capture) {
       "preimage-binding",
       "PREIMAGE_MATCHES_PAYMENT_HASH",
       "PAYMENT_PREIMAGE_NOT_OBSERVED",
-      ["No preimage was supplied to the private capture; the public report never includes it."]
+      [
+        "No preimage is present in the analyzed normalized capture, so this analyzer treats the hashlock predicate as unobserved.",
+        "That absence does not establish that an upstream export contained no preimage; public reports never include raw preimages."
+      ]
     );
   }
   if (!activityContextMatches(capture)) {

@@ -135,6 +135,19 @@ test("a wrong preimage is reported as not proven without invalidating a bound wa
   assert.equal(claim(report, "SETTLEMENT_RAIL_RECORDED").status, "PROVEN");
 });
 
+test("an absent normalized preimage does not imply absence from upstream source data", () => {
+  const capture = clone(completed);
+  delete capture.terminalActivity.preimage;
+  const preimageClaim = claim(analyzeCapture(capture), "PREIMAGE_MATCHES_PAYMENT_HASH");
+
+  assert.equal(preimageClaim.status, "UNKNOWN");
+  assert.equal(preimageClaim.reasonCode, "PAYMENT_PREIMAGE_NOT_OBSERVED");
+  assert.deepEqual(preimageClaim.limitations, [
+    "No preimage is present in the analyzed normalized capture, so this analyzer treats the hashlock predicate as unobserved.",
+    "That absence does not establish that an upstream export contained no preimage; public reports never include raw preimages."
+  ]);
+});
+
 test("HTTP evidence must bind to the canonical interaction request", () => {
   const capture = clone(completed);
   capture.httpObservation.requestDigest = `sha256:${"f".repeat(64)}`;
