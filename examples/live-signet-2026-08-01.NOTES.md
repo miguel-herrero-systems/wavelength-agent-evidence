@@ -6,6 +6,8 @@ This note accompanies report `wer-44ed84ac93ad0b0a10e35d6c`. The report was deri
 
 The report's `subject` block is operator-declared metadata, not a Wavelength observation. Its origin is `OPERATOR_DECLARED` and it establishes no claim: `establishes: []`. No HTTP request or paid-resource delivery occurred. `https://operator-declared.invalid/` uses the reserved `.invalid` namespace to make the non-resolving placeholder visible in the value itself. Its request and resource commitments prove only deterministic derivation from those declared inputs.
 
+`input.sourceVersion` and `input.network` are also operator-declared provenance. They were supplied to the normalizer because the exported records do not contain them; the public report neither derives nor independently authenticates the daemon version or network.
+
 In the v0.1 vocabulary, `PROVEN` means that a local predicate was satisfied over an `IMPORTED_UNATTESTED` capture. In particular, `WALLET_TERMINAL_SUCCESS` and `SETTLEMENT_RAIL_RECORDED` are conclusions about what the recorder supplied, not independent verification of network events, honesty, completeness, payer identity, or fulfilment.
 
 This boundary has to be carried in adjacent prose because the immutable v0.1 report schema cannot express claim origin, verification mode, verifier/recorder relationship, or negative scope. That is itself a demonstrated limitation of v0.1, not an assurance property of this note. The [v0.2 result-contract proposal](../docs/RESULT_CONTRACT_V0.2_PROPOSAL.md) is intended to make those dimensions part of the result instead of leaving them beside it.
