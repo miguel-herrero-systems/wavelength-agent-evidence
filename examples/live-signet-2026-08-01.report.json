@@ -1,0 +1,146 @@
+{
+  "specVersion": "wavelength-evidence.report/0.1",
+  "reportId": "wer-44ed84ac93ad0b0a10e35d6c",
+  "capturedAt": "2026-08-01T11:11:22Z",
+  "input": {
+    "captureIdCommitment": "sha256:5c42968bc315cbff3527a189d046b1aaa00e19de8c9492f74f5b9d8d29a61db5",
+    "captureDigest": "sha256:44ed84ac93ad0b0a10e35d6c8931430f8646e4a786e52be4ca8dc1d35161c9c2",
+    "mode": "IMPORTED_UNATTESTED",
+    "implementation": "lightninglabs/wavelength",
+    "network": "signet",
+    "interface": "wallet-api",
+    "sourceVersion": "a1094c9f7787d8b91cecc1ee7ae9117e811478d3"
+  },
+  "subject": {
+    "interactionIdCommitment": "sha256:fcd1a419fa326dc0e18980371053647b3a90a050cddfc221cae3c826309f7cff",
+    "resourceOrigin": "https://operator-declared.invalid",
+    "resourceCommitment": "sha256:615b5fa23d5d6a32f4e73a50b6442b5e7e2982982f74751dd82edc8b19cb707c",
+    "requestDigest": "sha256:0df072f6d3dd4723b2d63bcdcffa0bf56710d54aff3508ec7ced6db21fa37ca8"
+  },
+  "claims": [
+    {
+      "id": "prepare-send-observed",
+      "type": "PREPARE_SEND_OBSERVED",
+      "status": "PROVEN",
+      "reasonCode": "PREPARE_SEND_CAPTURE_VALID",
+      "evidence": ["prepareSend"],
+      "limitations": [
+        "The capture records a prepared Wavelength intent; it does not show that Send was called.",
+        "The recorder and Wavelength daemon identity are not independently authenticated by this profile."
+      ]
+    },
+    {
+      "id": "payment-hash-binding",
+      "type": "PREPARE_ACTIVITY_PAYMENT_HASH_MATCH",
+      "status": "PROVEN",
+      "reasonCode": "PAYMENT_HASH_MATCHED",
+      "evidence": ["prepareSend.paymentHash", "terminalActivity.paymentHash"],
+      "limitations": [
+        "This binds two recorder-supplied fields; it does not independently identify a network payment."
+      ]
+    },
+    {
+      "id": "amount-binding",
+      "type": "PREPARE_ACTIVITY_AMOUNT_MATCH",
+      "status": "PROVEN",
+      "reasonCode": "PAYMENT_AMOUNT_MATCHED",
+      "evidence": ["prepareSend.amountSat", "terminalActivity.amountSat"],
+      "limitations": [
+        "The terminal amount may be signed as an outflow; this profile compares its absolute value."
+      ]
+    },
+    {
+      "id": "preimage-binding",
+      "type": "PREIMAGE_MATCHES_PAYMENT_HASH",
+      "status": "UNKNOWN",
+      "reasonCode": "PAYMENT_PREIMAGE_NOT_OBSERVED",
+      "evidence": [],
+      "limitations": [
+        "No preimage was supplied to the private capture; the public report never includes it."
+      ]
+    },
+    {
+      "id": "wallet-terminal-success",
+      "type": "WALLET_TERMINAL_SUCCESS",
+      "status": "PROVEN",
+      "reasonCode": "WAVELENGTH_RECORDED_COMPLETE",
+      "evidence": ["terminalActivity.status"],
+      "limitations": [
+        "This is the local Wavelength wallet's durable status, not an independent network attestation."
+      ]
+    },
+    {
+      "id": "settlement-rail",
+      "type": "SETTLEMENT_RAIL_RECORDED",
+      "status": "PROVEN",
+      "reasonCode": "WAVELENGTH_RECORDED_RAIL_IN_ARK",
+      "evidence": ["terminalActivity.settlement"],
+      "limitations": [
+        "The recorder reports IN_ARK; this report does not independently replay or verify that rail.",
+        "The rail declaration is intentionally separate from the preimage/hashlock predicate."
+      ]
+    },
+    {
+      "id": "http-access",
+      "type": "HTTP_ACCESS_RESPONSE",
+      "status": "UNKNOWN",
+      "reasonCode": "HTTP_RESPONSE_NOT_OBSERVED",
+      "evidence": [],
+      "limitations": [
+        "Payment evidence alone does not show that a protected resource was returned."
+      ]
+    },
+    {
+      "id": "job-terminal-success",
+      "type": "CAPTURE_RECORDED_JOB_SUCCESS",
+      "status": "UNKNOWN",
+      "reasonCode": "JOB_TERMINAL_STATE_NOT_OBSERVED",
+      "evidence": [],
+      "limitations": [
+        "A synchronous payment or HTTP success does not establish a deferred job outcome."
+      ]
+    },
+    {
+      "id": "payer-identity",
+      "type": "PAYER_IDENTITY",
+      "status": "UNKNOWN",
+      "reasonCode": "PAYER_IDENTITY_NOT_ESTABLISHED",
+      "evidence": [],
+      "limitations": [
+        "A payment hash, preimage, and local wallet record do not identify the economic payer."
+      ]
+    },
+    {
+      "id": "obligation-fulfilled",
+      "type": "OBLIGATION_FULFILLED",
+      "status": "UNKNOWN",
+      "reasonCode": "COMMERCIAL_OBLIGATION_NOT_EVALUATED",
+      "evidence": [],
+      "limitations": [
+        "Payment and transport observations do not establish correctness, utility, or full commercial fulfilment.",
+        "No economic action follows from this report."
+      ]
+    }
+  ],
+  "summary": {
+    "proven": 5,
+    "notProven": 0,
+    "unknown": 5
+  },
+  "publicDisclosure": {
+    "policy": "REDACTED_DERIVED_REPORT",
+    "omittedFields": [
+      "invoice",
+      "send_intent_id",
+      "preimage",
+      "L402 authorization",
+      "macaroon",
+      "captureId",
+      "interactionId",
+      "URL path, query, and fragment"
+    ],
+    "note": "The report contains derived results, commitments, and coarse metadata; it omits bearer credentials and raw payment secrets."
+  },
+  "economicAction": "NOT_EVALUATED",
+  "disclaimerCode": "EVIDENCE_ANALYSIS_ONLY"
+}

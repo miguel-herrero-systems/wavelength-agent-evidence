@@ -27,7 +27,7 @@ The demo writes three JSON/Markdown report pairs to `reports/generated/`:
 | `paid-then-job-failed` | Payment and HTTP acceptance can be established while the provider's deferred job is explicitly not successful. The recorded rail is `IN_ARK`, not inferred from an invoice format. |
 | `ambiguous-after-dispatch` | A pending activity remains `UNKNOWN`; the demo does not guess success, failure, or retry safety. |
 
-All three bundled captures are synthetic, documentation-derived fixtures. They do not represent live Wavelength transactions.
+All three bundled captures are synthetic, documentation-derived fixtures. A separately reviewed [provenance note](./examples/live-signet-2026-08-01.NOTES.md) and [live Signet compatibility report](./examples/live-signet-2026-08-01.report.md) were derived from one bounded 1,000-sat Wavelength execution on 2026-08-01. Its raw export, invoice, normalized capture, and field manifest remain private and outside this repository.
 
 ## What it produces
 
@@ -63,7 +63,7 @@ Version 0.1 is fail-closed to:
 
 The code has no HTTP, gRPC, MCP, wallet, or shell integration. It never calls `PrepareSend` or `Send`, never retries a payment, and never connects to Wavelength. Inputs are capped at 1 MiB by the CLI.
 
-The normalized capture is private: terminal activity may contain a preimage. The redacted derived report omits raw invoices, `send_intent_id`, preimages, L402 authorization, macaroons, response bodies, capture/interaction IDs, and the URL path/query/fragment. It publishes commitments plus coarse metadata such as the resource origin. Commitments are tamper-evident references, not authentication of the recorder or daemon.
+The normalized capture is private: terminal activity may contain a preimage. The public report is built by explicit allowlist projection: only versioned report fields can be emitted. Unknown raw input fields are discarded, and their JSON Pointer paths—not their values—are recorded in a separate owner-only normalization manifest. The report publishes commitments plus coarse metadata such as the resource origin. Commitments are tamper-evident references, not authentication of the recorder or daemon.
 
 Read [SECURITY.md](./SECURITY.md) before importing any real signet export.
 
@@ -84,7 +84,7 @@ Verification recomputes the complete deterministic report. It detects report tam
 
 ## Normalize existing exported JSON
 
-The normalizer accepts documented snake_case or camelCase fields, protobuf-style base64 or hexadecimal 32-byte values, int64-safe decimal strings, compact `wavecli` output, and common wallet API wrappers.
+The normalizer accepts documented snake_case or camelCase fields, protobuf-style base64 or hexadecimal 32-byte values, int64-safe decimal strings, compact `wavecli` output, and the pinned wallet API's `InspectActivityResponse`. For that response it reads the activity from `entry` and the recorded rail only from `swap.settlement_type`; other unknown sibling and nested fields are discarded and recorded by path.
 
 ```sh
 node src/cli.js normalize \
@@ -98,7 +98,7 @@ node src/cli.js normalize \
   --out /private/path/capture.private.json
 ```
 
-The required network, version, and interface values are operator-declared provenance; they are not inferred from the two exported records. Optional flags include `--invoice-file`, `--request-body-file`, `--method`, `--captured-at`, `--capture-id`, and `--recorder`. Secret material is accepted only through files, never command-line values. The output file is created with owner-only permissions where the platform honors POSIX modes.
+The required network, version, and interface values are operator-declared provenance; they are not inferred from the two exported records. Optional flags include `--invoice-file`, `--request-body-file`, `--method`, `--captured-at`, `--capture-id`, `--recorder`, and `--manifest-out`. Secret material is accepted only through files, never command-line values. The normalized capture and its default `<output>.normalization-manifest.json` sidecar are created with owner-only permissions where the platform honors POSIX modes. The sidecar is private: it contains field paths only, but those names can still reveal implementation details.
 
 The HTTP request digest is derived rather than trusted:
 
@@ -118,8 +118,8 @@ Wavelength exposes the pieces an agent-payment evidence layer needs—two-phase 
 
 It also makes several integration questions concrete and testable:
 
-1. Is `payment_hash` the intended stable correlator from `PrepareSendResponse` to terminal `WalletEntry`?
-2. Which field is the canonical settlement rail across the wallet API and `wavecli`?
+1. Is `payment_hash` intended to remain the stable correlator from `PrepareSendResponse` to terminal `WalletEntry`?
+2. Is `InspectActivityResponse.swap.settlement_type` intended to remain the canonical wallet-API source for the recorded settlement rail?
 3. Can Lightning Labs provide a redacted signet conformance fixture or read-only export shape?
 4. Should original enum values be preserved alongside normalized values for forward compatibility?
 

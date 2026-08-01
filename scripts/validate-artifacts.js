@@ -11,6 +11,7 @@ import { renderReportMarkdown } from "../src/render-markdown.js";
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CAPTURE_SCHEMA_PATH = join(PROJECT_ROOT, "schemas", "wavelength-capture.schema.json");
 const REPORT_SCHEMA_PATH = join(PROJECT_ROOT, "schemas", "wavelength-report.schema.json");
+const REGENERATED_EXAMPLES = new Set(["paid-then-job-failed"]);
 
 const [captureSchema, reportSchema] = await Promise.all([
   readJson(CAPTURE_SCHEMA_PATH),
@@ -37,7 +38,7 @@ const exampleReportPaths = await listFiles(join(PROJECT_ROOT, "examples"), ".rep
 
 assertCount(fixturePaths, 3, "capture fixtures");
 assertCount(generatedReportPaths, 3, "generated reports");
-assertCount(exampleReportPaths, 1, "curated example reports");
+assertCount(exampleReportPaths, 2, "curated example reports");
 
 for (const path of fixturePaths) {
   validateOrThrow(validateCaptureSchema, await readJson(path), path);
@@ -48,22 +49,24 @@ for (const path of [...generatedReportPaths, ...exampleReportPaths]) {
 
 for (const reportPath of exampleReportPaths) {
   const scenarioName = basename(reportPath, ".report.json");
-  const capture = await readJson(join(PROJECT_ROOT, "fixtures", `${scenarioName}.json`));
   const observedReport = await readJson(reportPath);
-  const expectedReport = analyzeCapture(capture);
-  if (canonicalJson(observedReport) !== canonicalJson(expectedReport)) {
-    throw new Error(`${reportPath} does not match deterministic analysis`);
-  }
   const markdownPath = join(PROJECT_ROOT, "examples", `${scenarioName}.report.md`);
   const observedMarkdown = await readFile(markdownPath, "utf8");
-  if (observedMarkdown !== renderReportMarkdown(expectedReport)) {
+  if (observedMarkdown !== renderReportMarkdown(observedReport)) {
     throw new Error(`${markdownPath} does not match its JSON report`);
+  }
+  if (REGENERATED_EXAMPLES.has(scenarioName)) {
+    const capture = await readJson(join(PROJECT_ROOT, "fixtures", `${scenarioName}.json`));
+    const expectedReport = analyzeCapture(capture);
+    if (canonicalJson(observedReport) !== canonicalJson(expectedReport)) {
+      throw new Error(`${reportPath} does not match deterministic analysis`);
+    }
   }
 }
 
 process.stdout.write(
   `Validated 2 Draft 2020-12 schemas, ${fixturePaths.length} captures, ` +
-  `${generatedReportPaths.length} generated reports, and ${exampleReportPaths.length} curated example.\n`
+  `${generatedReportPaths.length} generated reports, and ${exampleReportPaths.length} curated examples.\n`
 );
 
 async function listFiles(directory, suffix) {

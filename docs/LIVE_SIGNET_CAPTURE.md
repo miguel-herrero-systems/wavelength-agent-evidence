@@ -2,7 +2,7 @@
 
 This runbook turns already-exported Wavelength signet data into an offline evidence report. It does not tell the demo to make a payment: the repository does not call `PrepareSend` or `Send` and has no wallet or network integration.
 
-The bundled fixtures are synthetic and documentation-derived. A first bounded live compatibility run was completed on signet on 2026-08-01; its reviewed public report is separate from the private source records.
+The bundled fixtures are synthetic and documentation-derived. A first bounded live compatibility run was completed on signet on 2026-08-01; its reviewed [provenance note](../examples/live-signet-2026-08-01.NOTES.md) and public report are separate from the private source records.
 
 ## VPS preparation status — 2026-08-01
 
