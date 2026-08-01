@@ -32,7 +32,7 @@ Successful recomputation demonstrates deterministic agreement over the published
 
 The private capture was normalized and the report was generated with repository commit [`09f7c4f1f5398187e29241cf7563e70cda50e1f7`](https://github.com/miguel-herrero-systems/wavelength-agent-evidence/commit/09f7c4f1f5398187e29241cf7563e70cda50e1f7).
 
-That SHA identifies the exact normalizer, analyzer, schemas, and tests used. It does not make the report publicly reproducible: the raw export, invoice, normalized capture, and normalization manifest remain private and are not committed.
+That SHA identifies the exact normalizer, analyzer, schemas, and tests used. The published normalized capture makes the report publicly reproducible with that analyzer. It does not authenticate the underlying source or establish its completeness: the raw export, invoice, and normalization manifest remain private and are not committed.
 
 ## Compatibility result
 
