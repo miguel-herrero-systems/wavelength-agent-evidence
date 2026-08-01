@@ -13,7 +13,7 @@ Use these handling rules even when the transaction is on signet:
 | Artifact | Classification | Handling |
 | --- | --- | --- |
 | Raw Wavelength/API/CLI export | Secret | Keep outside Git; it can contain a raw invoice, `send_intent_id`, preimage, macaroon, or authorization header. |
-| Normalized capture | Confidential | Keep outside Git; the optional terminal activity can contain a preimage. |
+| Normalized capture | Confidential by default | Keep outside Git unless that exact instance passes an allowlist-based publication review confirming that it contains no preimage, raw invoice, raw send intent, credential, or discarded unknown value. Document every public exception. |
 | Normalization field manifest | Confidential | Keep outside Git; it records discarded unknown JSON Pointer paths, never their values, and may reveal private implementation field names. |
 | Derived JSON/Markdown report | Review before sharing | Designed to contain commitments and conclusions instead of bearer data, but inspect every report before publication. |
 | Synthetic fixture | Public test data | Must contain only deliberately generated, non-spendable values. |
@@ -44,7 +44,7 @@ Before sharing a report:
 3. Review the private normalization manifest and account for every discarded unknown field path without copying its value into a public artifact.
 4. Confirm that the report contains only fields defined by the versioned report schema.
 5. Search the report for the actual secret values from the private inputs, not merely their field names.
-6. Share only the derived report, never the raw export, normalized capture, or normalization manifest.
+6. Share only the derived report by default. Publish a normalized capture only after a separate instance-specific review confirms that no secret or identifying value from the raw inputs survived; never publish the raw export or normalization manifest.
 
 Generated reports and private capture locations are ignored by Git as a second line of defense. `.gitignore` is not a security control: always inspect the staged diff before committing.
 
@@ -54,6 +54,6 @@ The current implementation uses Node.js built-ins and has no runtime package dep
 
 ## Reporting a vulnerability
 
-Do not include a real capture or secret in a public report. If this repository enables GitHub private vulnerability reporting, use that channel. Otherwise, contact the repository owner privately with a minimal reproducer made from synthetic data. Include the affected commit, Node.js version, expected result, actual result, and whether any secret may have been exposed.
+Do not include a raw export, unreviewed normalized capture, or secret in a public report. If this repository enables GitHub private vulnerability reporting, use that channel. Otherwise, contact the repository owner privately with a minimal reproducer made from synthetic data. Include the affected commit, Node.js version, expected result, actual result, and whether any secret may have been exposed.
 
 If a secret was exposed, treat it as compromised and rotate or revoke it through the system that issued it. This demo cannot revoke Wavelength, Lightning, L402, or wallet credentials.

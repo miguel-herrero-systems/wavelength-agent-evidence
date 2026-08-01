@@ -12,6 +12,22 @@ In the v0.1 vocabulary, `PROVEN` means that a local predicate was satisfied over
 
 This boundary has to be carried in adjacent prose because the immutable v0.1 report schema cannot express claim origin, verification mode, verifier/recorder relationship, or negative scope. That is itself a demonstrated limitation of v0.1, not an assurance property of this note. The [v0.2 result-contract proposal](../docs/RESULT_CONTRACT_V0.2_PROPOSAL.md) is intended to make those dimensions part of the result instead of leaving them beside it.
 
+## Public capture and privacy review
+
+The exact normalized capture used to derive this report is published as [`live-signet-2026-08-01.capture.json`](./live-signet-2026-08-01.capture.json). The source export did contain a non-empty value at `swap.preimage`; that path was outside the allowlist, was recorded by path in the private manifest, and was discarded. The published capture contains no preimage, BOLT11 invoice, raw `send_intent_id`, wallet or node credential, session identifier, outpoint, transaction identifier, or unknown raw-field value. Its invoice and send-intent references are commitments.
+
+The final privacy gate compared 22 non-empty secret or identifying values from the raw prepare, activity, and invoice inputs against both the normalized capture and the complete candidate repository tree, and found zero disclosures. The manifest used `ALLOWLIST_PROJECTION`, retained no unknown values, recorded all 38 discarded paths without truncation, and remains private because it describes implementation-specific source fields. The generic v0.1 limitation inside the capture says captures can contain a preimage and should be private by default; this reviewed instance is the explicit exception.
+
+Anyone can now recompute the public report without a bilateral data transfer:
+
+```sh
+node src/cli.js verify \
+  --capture examples/live-signet-2026-08-01.capture.json \
+  --report examples/live-signet-2026-08-01.report.json
+```
+
+Successful recomputation demonstrates deterministic agreement over the published capture. It does not authenticate the recorder or daemon, prove the capture complete or honest, or independently establish network settlement.
+
 ## Analyzer traceability
 
 The private capture was normalized and the report was generated with repository commit [`09f7c4f1f5398187e29241cf7563e70cda50e1f7`](https://github.com/miguel-herrero-systems/wavelength-agent-evidence/commit/09f7c4f1f5398187e29241cf7563e70cda50e1f7).

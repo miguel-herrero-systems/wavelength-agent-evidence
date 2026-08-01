@@ -20,7 +20,7 @@ This section records the preparation that preceded the bounded live capture. It 
 - Wallet A created one 1,000-sat amount-bearing Signet BOLT11 invoice. Wallet B executed exactly one `PrepareSend` and one `Send`. Prepare returned a complete quote for `SEND_RAIL_IN_ARK`; the terminal activity was `ENTRY_STATUS_COMPLETE`, `ENTRY_KIND_SEND`, amount `-1000`, fee `0`.
 - The live `InspectActivityResponse` placed settlement under the sibling `swap.settlement_type`, rather than the synthetic fixture's nested `entry.trace` shape. The normalizer was updated through tests to consume only that field and to register the other response fields as discarded unknown paths.
 
-The raw prepare, send, invoice, and inspection records remain private and outside the repository. The completed payment does not establish resource delivery, payer identity, daemon identity, or independent verification of the rail.
+The raw prepare, send, invoice, inspection records, and field manifest remain private and outside the repository. After an instance-specific privacy review, the exact normalized capture used for the public report was published so that anyone can recompute it. The completed payment does not establish resource delivery, payer identity, daemon identity, or independent verification of the rail.
 
 ## Safety boundary
 
@@ -155,7 +155,7 @@ Then read both report files and confirm:
 
 The report includes an illustrative `omittedFields` list, so words such as `preimage` and `send_intent_id` are expected as labels. That list is not the enforcement mechanism and is not exhaustive; the allowlist projection and closed report schema are. Check for the secret values themselves.
 
-Share only the reviewed `report.json` and/or `report.md`. Keep `prepare.json`, `activity.json`, `invoice.txt`, `capture.private.json`, and the normalization manifest private. Follow your environment's approved retention and deletion policy when they are no longer needed.
+By default, share only the reviewed `report.json` and/or `report.md`. Keep `prepare.json`, `activity.json`, `invoice.txt`, `capture.private.json`, and the normalization manifest private unless a particular normalized capture passes a separate instance-specific, allowlist-based privacy review. The published `examples/live-signet-2026-08-01.capture.json` is such an exception; its raw inputs and manifest remain private. Follow your environment's approved retention and deletion policy when private artifacts are no longer needed.
 
 ## Interpreting a useful live result
 

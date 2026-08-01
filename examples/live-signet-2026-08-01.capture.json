@@ -1,0 +1,48 @@
+{
+  "specVersion": "wavelength-evidence.capture/0.1",
+  "captureId": "167772b7a1884b4f833c16975898d35d83355cd3c983826bbb811df37388c8bf",
+  "capturedAt": "2026-08-01T11:11:22Z",
+  "mode": "IMPORTED_UNATTESTED",
+  "source": {
+    "implementation": "lightninglabs/wavelength",
+    "network": "signet",
+    "interface": "wallet-api",
+    "version": "a1094c9f7787d8b91cecc1ee7ae9117e811478d3",
+    "recorder": "wavelength-evidence-cli"
+  },
+  "interaction": {
+    "interactionId": "397bd6a37b3e5f18e6c3c32dae1d87771a1d93ee410b49df231e341b0733c71e",
+    "resource": "https://operator-declared.invalid/",
+    "requestMethod": "GET",
+    "requestBodyDigest": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "requestDigest": "sha256:0df072f6d3dd4723b2d63bcdcffa0bf56710d54aff3508ec7ced6db21fa37ca8"
+  },
+  "prepareSend": {
+    "sendIntentIdCommitment": "sha256:6ac30c3a40e0429d7009b87ca9d62d7c9fc57e59931e91092f6a710164fd8042",
+    "invoiceCommitment": "sha256:0046d4c271c94257360317dd9f61faefef79b2fe39c89bd13e267221229399b3",
+    "amountSat": 1000,
+    "expectedFeeSat": 0,
+    "feeKnown": true,
+    "expectedTotalOutflowSat": 1000,
+    "totalOutflowKnown": true,
+    "rail": "IN_ARK",
+    "quoteStatus": "COMPLETE",
+    "paymentHash": "82dade5267d5904cc5f53b21e8d6b38e80667243d1f193e5839a29a171a8ea81",
+    "expiresAtUnix": 1785582974
+  },
+  "terminalActivity": {
+    "activityId": "82dade5267d5904cc5f53b21e8d6b38e80667243d1f193e5839a29a171a8ea81",
+    "status": "COMPLETE",
+    "kind": "SEND",
+    "amountSat": -1000,
+    "feeSat": 0,
+    "paymentHash": "82dade5267d5904cc5f53b21e8d6b38e80667243d1f193e5839a29a171a8ea81",
+    "settlement": "IN_ARK"
+  },
+  "limitations": [
+    "Imported JSON is treated as untrusted recorder input; this profile does not authenticate the daemon or operator.",
+    "Source network, version, and interface are operator-declared metadata, not values derived from the exported records.",
+    "Normalization is offline and never invokes PrepareSend, Send, or any network endpoint.",
+    "The capture is private because it can contain a payment preimage; publish only the derived report."
+  ]
+}
