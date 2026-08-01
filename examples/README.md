@@ -9,7 +9,7 @@
 
 That capture and report are entirely synthetic and derived from public field documentation. They are not evidence of a live Wavelength payment.
 
-`live-signet-2026-08-01` is the reviewed public capture and report from one bounded live compatibility run. Read its provenance note before using either artifact. The raw export, invoice, and field manifest remain private; the normalized capture was separately reviewed and contains commitments instead of the raw invoice and send intent, and no payment preimage. The declared `operator-declared.invalid` subject is a non-resolving placeholder because this run tested wallet compatibility, not delivery of a paid resource. The capture is `IMPORTED_UNATTESTED`: it describes what the pinned local recorder reported and does not authenticate the operator, daemon, or rail independently.
+`live-signet-2026-08-01` is the reviewed public capture and report from one bounded live compatibility run. Read its provenance note before using either artifact. The raw export, invoice, and field manifest remain private; the normalized capture was separately reviewed and contains commitments instead of the raw invoice and send intent, and no payment preimage. The raw export did contain a preimage, but the allowlist disclosure policy excluded it; `PAYMENT_PREIMAGE_NOT_OBSERVED` therefore describes the analyzer's input boundary, not the operator's knowledge. The declared `operator-declared.invalid` subject is a non-resolving placeholder because this run tested wallet compatibility, not delivery of a paid resource. The capture is `IMPORTED_UNATTESTED`: it describes what the pinned local recorder reported and does not authenticate the operator, daemon, or rail independently.
 
 Files:
 
