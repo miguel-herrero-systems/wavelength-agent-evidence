@@ -27,7 +27,7 @@ The demo writes three JSON/Markdown report pairs to `reports/generated/`:
 | `paid-then-job-failed` | Payment and HTTP acceptance can be established while the provider's deferred job is explicitly not successful. The recorded rail is `IN_ARK`, not inferred from an invoice format. |
 | `ambiguous-after-dispatch` | A pending activity remains `UNKNOWN`; the demo does not guess success, failure, or retry safety. |
 
-All three bundled captures are synthetic, documentation-derived fixtures. A separately reviewed [provenance note](./examples/live-signet-2026-08-01.NOTES.md) and [live Signet compatibility report](./examples/live-signet-2026-08-01.report.md) were derived from one bounded 1,000-sat Wavelength execution on 2026-08-01. Its raw export, invoice, normalized capture, and field manifest remain private and outside this repository.
+All three demo captures are synthetic, documentation-derived fixtures. A separately reviewed [normalized capture](./examples/live-signet-2026-08-01.capture.json), [provenance note](./examples/live-signet-2026-08-01.NOTES.md), and [live Signet compatibility report](./examples/live-signet-2026-08-01.report.md) were derived from one bounded 1,000-sat Wavelength execution on 2026-08-01. The raw export, invoice, and field manifest remain private and outside this repository.
 
 ## What it produces
 
@@ -63,7 +63,7 @@ Version 0.1 is fail-closed to:
 
 The code has no HTTP, gRPC, MCP, wallet, or shell integration. It never calls `PrepareSend` or `Send`, never retries a payment, and never connects to Wavelength. Inputs are capped at 1 MiB by the CLI.
 
-The normalized capture is private: terminal activity may contain a preimage. The public report is built by explicit allowlist projection: only versioned report fields can be emitted. Unknown raw input fields are discarded, and their JSON Pointer paths—not their values—are recorded in a separate owner-only normalization manifest. The report publishes commitments plus coarse metadata such as the resource origin. Commitments are tamper-evident references, not authentication of the recorder or daemon.
+Normalized captures are private by default because terminal activity may contain a preimage. The reviewed live Signet capture is an explicit published exception: its source export's non-empty `swap.preimage` was outside the allowlist and discarded, and the published capture contains no preimage or raw invoice. Unknown raw input fields are discarded, and their JSON Pointer paths—not their values—are recorded in a separate owner-only normalization manifest. Commitments are tamper-evident references, not authentication of the recorder or daemon.
 
 Read [SECURITY.md](./SECURITY.md) before importing any real signet export.
 
