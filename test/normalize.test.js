@@ -4,7 +4,10 @@ import test from "node:test";
 
 import { analyzeCapture } from "../src/analyze.js";
 import { sha256Bytes, sha256Json } from "../src/canonical-json.js";
-import { normalizeWavelengthCapture } from "../src/normalize.js";
+import {
+  inspectWavelengthInputFields,
+  normalizeWavelengthCapture
+} from "../src/normalize.js";
 import {
   PINNED_WAVELENGTH_COMMIT,
   SUPPORTED_NETWORK
@@ -186,6 +189,48 @@ test("prepareSend and activity wrappers are accepted without leaking raw intent 
   assert.equal(JSON.stringify(capture).includes("wrapped-secret-intent"), false);
 });
 
+test("normalizes the live InspectActivityResponse shape and allowlists only swap settlement", () => {
+  const privateInvoice = "lntbs1-private-live-invoice";
+  const privateSession = "private-funding-session";
+  const activity = {
+    entry: {
+      ...snakeActivity({ trace: undefined }),
+      request: { lightning_invoice: { invoice: privateInvoice } },
+      counterparty: "private-counterparty"
+    },
+    swap: {
+      settlement_type: "SETTLEMENT_TYPE_IN_ARK",
+      invoice: privateInvoice,
+      funding_session_id: privateSession
+    },
+    vtxos: [{ private_outpoint: "private-vtxo" }],
+    ledger_rows: [{ private_row: "private-ledger-row" }],
+    notes: ["private-note"]
+  };
+  const manifest = inspectWavelengthInputFields({
+    prepare: snakePrepare(),
+    activity
+  });
+  const capture = normalizeWavelengthCapture({
+    ...SOURCE_METADATA,
+    prepare: snakePrepare(),
+    activity,
+    captureId: "capture-live-inspect-shape",
+    capturedAt: "2026-08-01T00:00:00Z",
+    interactionId: "interaction-live-inspect-shape",
+    resource: "https://agent.example/live-inspect-shape"
+  });
+
+  assert.equal(capture.terminalActivity.settlement, "IN_ARK");
+  assert.ok(manifest.unknownFieldPaths.includes("/activity/swap/invoice"));
+  assert.ok(manifest.unknownFieldPaths.includes("/activity/swap/funding_session_id"));
+  assert.ok(manifest.unknownFieldPaths.includes("/activity/vtxos"));
+  assert.equal(manifest.unknownFieldPaths.includes("/activity/swap/settlement_type"), false);
+  const serialized = JSON.stringify(capture);
+  assert.equal(serialized.includes(privateInvoice), false);
+  assert.equal(serialized.includes(privateSession), false);
+});
+
 test("normalization omits optional activity and invoice fields when they are not supplied", () => {
   const capture = normalizeWavelengthCapture({
     ...SOURCE_METADATA,
@@ -269,6 +314,63 @@ test("derived report omits raw intent, invoice, preimage, and URL secrets", () =
     assert.equal(serialized.includes(secret), false, `report leaked ${secret}`);
   }
   assert.equal(report.economicAction, "NOT_EVALUATED");
+});
+
+test("allowlist projection records unknown field paths privately without retaining values", () => {
+  const unknownPrepareValue = "private-route-metadata-value";
+  const unknownActivityValue = "private-node-identifier-value";
+  const prepare = {
+    response: {
+      ...snakePrepare(),
+      route_metadata: unknownPrepareValue
+    },
+    transport_envelope: "private-envelope-value"
+  };
+  const activity = {
+    result: {
+      ...snakeActivity(),
+      progress: {
+        payment_hash: PAYMENT_HASH_HEX,
+        preimage: PREIMAGE_HEX,
+        node_hint: unknownActivityValue
+      }
+    }
+  };
+  const manifest = inspectWavelengthInputFields({ prepare, activity });
+  const capture = normalizeWavelengthCapture({
+    ...SOURCE_METADATA,
+    prepare,
+    activity,
+    captureId: "capture-unknown-fields",
+    capturedAt: "2026-08-01T00:00:00Z",
+    interactionId: "interaction-unknown-fields",
+    resource: "https://agent.example/unknown-fields"
+  });
+  const report = analyzeCapture(capture);
+  const publicOutput = JSON.stringify(report);
+  const privateManifest = JSON.stringify(manifest);
+
+  assert.equal(manifest.policy, "ALLOWLIST_PROJECTION");
+  assert.equal(manifest.valuesRetained, false);
+  assert.deepEqual(manifest.unknownFieldPaths, [
+    "/prepare/transport_envelope",
+    "/prepare/response/route_metadata",
+    "/activity/result/progress/node_hint"
+  ]);
+  assert.equal(manifest.unknownFieldCount, 3);
+  assert.equal(manifest.pathsTruncated, false);
+  assert.equal(privateManifest.includes(unknownPrepareValue), false);
+  assert.equal(privateManifest.includes(unknownActivityValue), false);
+  for (const token of [
+    "route_metadata",
+    "transport_envelope",
+    "node_hint",
+    unknownPrepareValue,
+    unknownActivityValue
+  ]) {
+    assert.equal(JSON.stringify(capture).includes(token), false);
+    assert.equal(publicOutput.includes(token), false);
+  }
 });
 
 function normalizeBase(prepare, sourceOverrides = {}) {

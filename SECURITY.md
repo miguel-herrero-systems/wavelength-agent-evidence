@@ -14,6 +14,7 @@ Use these handling rules even when the transaction is on signet:
 | --- | --- | --- |
 | Raw Wavelength/API/CLI export | Secret | Keep outside Git; it can contain a raw invoice, `send_intent_id`, preimage, macaroon, or authorization header. |
 | Normalized capture | Confidential | Keep outside Git; the optional terminal activity can contain a preimage. |
+| Normalization field manifest | Confidential | Keep outside Git; it records discarded unknown JSON Pointer paths, never their values, and may reveal private implementation field names. |
 | Derived JSON/Markdown report | Review before sharing | Designed to contain commitments and conclusions instead of bearer data, but inspect every report before publication. |
 | Synthetic fixture | Public test data | Must contain only deliberately generated, non-spendable values. |
 
@@ -23,7 +24,7 @@ The public report intentionally names omitted field classes such as `preimage`; 
 
 ## Trust boundaries and claim limits
 
-- Input JSON is untrusted. Use the provided CLI, which applies bounded reads and strict field validation, rather than importing capture objects directly from an untrusted application.
+- Input JSON is untrusted. Use the provided CLI, which applies bounded reads and explicit allowlist projection. Unknown raw fields are discarded and recorded by path in the private normalization manifest; they cannot flow into the normalized capture or public report.
 - Network, source commit, and interface are operator-declared normalization inputs. Requiring the pinned values prevents accidental broadening, but it does not independently prove their truth.
 - A matching SHA-256 preimage proves only a hashlock relation. It does not prove payer identity, the settlement rail, delivery quality, or commercial fulfilment.
 - A Wavelength `COMPLETE` status is a recorder-supplied local wallet observation, not an independent network attestation.
@@ -40,9 +41,10 @@ Before sharing a report:
 
 1. Run the test and verification commands documented in the README.
 2. Confirm that the input network is `signet` and the source version is the pinned commit.
-3. Search the report for the actual secret values from the private inputs, not merely their field names.
-4. Confirm that the report contains no invoice, `send_intent_id`, preimage, macaroon, authorization value, raw response body, or personal identifier.
-5. Share only the derived report, never the raw or normalized capture.
+3. Review the private normalization manifest and account for every discarded unknown field path without copying its value into a public artifact.
+4. Confirm that the report contains only fields defined by the versioned report schema.
+5. Search the report for the actual secret values from the private inputs, not merely their field names.
+6. Share only the derived report, never the raw export, normalized capture, or normalization manifest.
 
 Generated reports and private capture locations are ignored by Git as a second line of defense. `.gitignore` is not a security control: always inspect the staged diff before committing.
 

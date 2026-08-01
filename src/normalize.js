@@ -12,6 +12,63 @@ const DEFAULT_LIMITATIONS = [
   "The capture is private because it can contain a payment preimage; publish only the derived report."
 ];
 
+const PREPARE_WRAPPERS = ["prepare_send", "prepareSend", "response"];
+const PREPARE_FIELDS = new Set([
+  "send_intent_id", "sendIntentId", "amount_sat", "amountSat",
+  "expected_fee_sat", "expectedFeeSat", "fee_known", "feeKnown",
+  "expected_total_outflow_sat", "expectedTotalOutflowSat",
+  "total_outflow_known", "totalOutflowKnown", "rail", "quote_status",
+  "quoteStatus", "payment_hash", "paymentHash", "expires_at_unix",
+  "expiresAtUnix"
+]);
+const ACTIVITY_WRAPPERS = ["entry", "activity", "result"];
+const ACTIVITY_FIELDS = new Set([
+  "id", "activity_id", "activityId", "status", "kind", "amount_sat",
+  "amountSat", "fee_sat", "feeSat", "payment_hash", "paymentHash",
+  "preimage", "settlement", "settlement_type", "settlementType",
+  "progress", "trace"
+]);
+const PROGRESS_FIELDS = new Set(["payment_hash", "paymentHash", "preimage"]);
+const TRACE_FIELDS = new Set(["settlement", "settlement_type", "settlementType"]);
+const ACTIVITY_RESPONSE_SIBLINGS = new Map([
+  ["swap", new Set(["settlement", "settlement_type", "settlementType"])]
+]);
+const MAX_RECORDED_UNKNOWN_FIELDS = 256;
+
+export function inspectWavelengthInputFields({ prepare, activity }) {
+  const unknownFieldPaths = [];
+  collectUnknownFields({
+    input: prepare,
+    source: "prepare",
+    wrappers: PREPARE_WRAPPERS,
+    fields: PREPARE_FIELDS,
+    nested: new Map()
+  }, unknownFieldPaths);
+  if (activity !== undefined) {
+    collectUnknownFields({
+      input: activity,
+      source: "activity",
+      wrappers: ACTIVITY_WRAPPERS,
+      fields: ACTIVITY_FIELDS,
+      nested: new Map([
+        ["progress", PROGRESS_FIELDS],
+        ["trace", TRACE_FIELDS]
+      ]),
+      wrapperSiblings: ACTIVITY_RESPONSE_SIBLINGS,
+      wrapperSiblingsFor: "entry"
+    }, unknownFieldPaths);
+  }
+
+  return {
+    specVersion: "wavelength-evidence.normalization-manifest/0.1",
+    policy: "ALLOWLIST_PROJECTION",
+    valuesRetained: false,
+    unknownFieldCount: unknownFieldPaths.length,
+    unknownFieldPaths: unknownFieldPaths.slice(0, MAX_RECORDED_UNKNOWN_FIELDS),
+    pathsTruncated: unknownFieldPaths.length > MAX_RECORDED_UNKNOWN_FIELDS
+  };
+}
+
 export function normalizeWavelengthCapture({
   prepare,
   activity,
@@ -28,7 +85,7 @@ export function normalizeWavelengthCapture({
   recorder = "wavelength-evidence-cli",
   limitations = []
 }) {
-  const prepared = unwrapRecord(prepare, ["prepare_send", "prepareSend", "response"], "prepare");
+  const prepared = unwrapRecord(prepare, PREPARE_WRAPPERS, "prepare");
   const declaredNetwork = requiredString(network, "network").toLowerCase();
   const declaredVersion = requiredString(version, "version");
   if (declaredNetwork !== SUPPORTED_NETWORK) {
@@ -116,15 +173,18 @@ export function normalizeWavelengthCapture({
 }
 
 function normalizeActivity(input) {
-  const activity = unwrapRecord(input, ["entry", "activity", "result"], "activity");
+  const selected = selectRecord(input, ACTIVITY_WRAPPERS, "activity");
+  const activity = selected.record;
   const progress = optionalRecord(activity.progress);
   const trace = optionalRecord(activity.trace);
+  const swap = selected.wrapperName === "entry" ? optionalRecord(input.swap) : undefined;
   const paymentHash = pick(activity, ["payment_hash", "paymentHash"])
     ?? pick(progress, ["payment_hash", "paymentHash"]);
   const preimageValue = pick(activity, ["preimage"])
     ?? pick(progress, ["preimage"]);
   const settlementValue = pick(activity, ["settlement", "settlement_type", "settlementType"])
-    ?? pick(trace, ["settlement", "settlement_type", "settlementType"]);
+    ?? pick(trace, ["settlement", "settlement_type", "settlementType"])
+    ?? pick(swap, ["settlement", "settlement_type", "settlementType"]);
 
   return {
     activityId: requiredString(
@@ -265,11 +325,70 @@ function requiredString(value, path) {
 }
 
 function unwrapRecord(value, wrapperNames, path) {
+  return selectRecord(value, wrapperNames, path).record;
+}
+
+function selectRecord(value, wrapperNames, path) {
   if (!isRecord(value)) throw new Error(`${path} must be an object`);
   for (const name of wrapperNames) {
-    if (isRecord(value[name])) return value[name];
+    if (isRecord(value[name])) return { record: value[name], wrapperName: name };
   }
-  return value;
+  return { record: value, wrapperName: undefined };
+}
+
+function collectUnknownFields({
+  input,
+  source,
+  wrappers,
+  fields,
+  nested,
+  wrapperSiblings = new Map(),
+  wrapperSiblingsFor
+}, output) {
+  const selected = selectRecord(input, wrappers, source);
+  const rootPath = selected.wrapperName === undefined
+    ? `/${source}`
+    : `/${source}/${jsonPointerToken(selected.wrapperName)}`;
+
+  if (selected.wrapperName !== undefined) {
+    for (const key of Object.keys(input)) {
+      if (key === selected.wrapperName) continue;
+      const siblingFields = selected.wrapperName === wrapperSiblingsFor
+        ? wrapperSiblings.get(key)
+        : undefined;
+      if (siblingFields === undefined || !isRecord(input[key])) {
+        output.push(`/${source}/${jsonPointerToken(key)}`);
+        continue;
+      }
+      for (const siblingKey of Object.keys(input[key])) {
+        if (!siblingFields.has(siblingKey)) {
+          output.push(
+            `/${source}/${jsonPointerToken(key)}/${jsonPointerToken(siblingKey)}`
+          );
+        }
+      }
+    }
+  }
+
+  for (const key of Object.keys(selected.record)) {
+    if (!fields.has(key)) {
+      output.push(`${rootPath}/${jsonPointerToken(key)}`);
+      continue;
+    }
+    const nestedFields = nested.get(key);
+    const nestedValue = selected.record[key];
+    if (nestedFields !== undefined && isRecord(nestedValue)) {
+      for (const nestedKey of Object.keys(nestedValue)) {
+        if (!nestedFields.has(nestedKey)) {
+          output.push(`${rootPath}/${jsonPointerToken(key)}/${jsonPointerToken(nestedKey)}`);
+        }
+      }
+    }
+  }
+}
+
+function jsonPointerToken(value) {
+  return value.replace(/~/gu, "~0").replace(/\//gu, "~1");
 }
 
 function optionalRecord(value) {

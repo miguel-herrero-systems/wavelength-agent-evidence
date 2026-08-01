@@ -74,7 +74,9 @@ test("CLI normalizes exported records to an owner-only private capture", async t
   const preparePath = join(temporary, "prepare.json");
   const activityPath = join(temporary, "activity.json");
   const capturePath = join(temporary, "capture.private.json");
+  const manifestPath = `${capturePath}.normalization-manifest.json`;
   const rawIntent = "synthetic-private-send-intent";
+  const unknownValue = "synthetic-private-route-metadata";
   const preimage = "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
   const paymentHash = "630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd";
   await writeFile(preparePath, JSON.stringify({
@@ -87,7 +89,8 @@ test("CLI normalizes exported records to an owner-only private capture", async t
     rail: "SEND_RAIL_LIGHTNING",
     quote_status: "QUOTE_STATUS_COMPLETE",
     payment_hash: paymentHash,
-    expires_at_unix: "1784640000"
+    expires_at_unix: "1784640000",
+    route_metadata: unknownValue
   }));
   await writeFile(activityPath, JSON.stringify({
     id: "activity-cli-normalize",
@@ -113,14 +116,21 @@ test("CLI normalizes exported records to an owner-only private capture", async t
     "--out", capturePath
   );
   const captureText = await readFile(capturePath, "utf8");
+  const manifestText = await readFile(manifestPath, "utf8");
   const capture = JSON.parse(captureText);
   assert.equal(result.stdout.includes(rawIntent), false);
   assert.equal(result.stdout.includes(preimage), false);
   assert.equal(captureText.includes(rawIntent), false);
+  assert.equal(captureText.includes(unknownValue), false);
+  assert.equal(manifestText.includes(unknownValue), false);
+  assert.deepEqual(JSON.parse(manifestText).unknownFieldPaths, [
+    "/prepare/route_metadata"
+  ]);
   assert.equal(capture.terminalActivity.preimage, preimage);
   assert.equal(capture.source.network, "signet");
   if (process.platform !== "win32") {
     assert.equal((await stat(capturePath)).mode & 0o777, 0o600);
+    assert.equal((await stat(manifestPath)).mode & 0o777, 0o600);
   }
 });
 

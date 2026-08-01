@@ -5,7 +5,10 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { analyzeCapture } from "./analyze.js";
 import { canonicalJson } from "./canonical-json.js";
-import { normalizeWavelengthCapture } from "./normalize.js";
+import {
+  inspectWavelengthInputFields,
+  normalizeWavelengthCapture
+} from "./normalize.js";
 import { renderReportMarkdown } from "./render-markdown.js";
 
 const MAX_INPUT_BYTES = 1024 * 1024;
@@ -76,6 +79,7 @@ async function runNormalize(options) {
     "version",
     "interface",
     "recorder",
+    "manifest-out",
     "out"
   ]);
   const prepare = await readJson(requiredOption(options, "prepare"));
@@ -90,6 +94,12 @@ async function runNormalize(options) {
       ? undefined
       : await readBytes(options["invoice-file"]);
   const interactionId = requiredOption(options, "interaction-id");
+  const outputPath = resolve(requiredOption(options, "out"));
+  const manifestPath = resolve(
+    options["manifest-out"] ?? `${outputPath}.normalization-manifest.json`
+  );
+  const normalizationManifest = inspectWavelengthInputFields({ prepare, activity });
+  await writeJson(manifestPath, normalizationManifest, { privateFile: true });
   const capture = normalizeWavelengthCapture({
     prepare,
     activity,
@@ -105,10 +115,9 @@ async function runNormalize(options) {
     interfaceName: requiredOption(options, "interface"),
     recorder: options.recorder ?? "wavelength-evidence-cli"
   });
-  const outputPath = resolve(requiredOption(options, "out"));
   await writeJson(outputPath, capture, { privateFile: true });
   process.stdout.write(
-    `Wrote private normalized capture ${capture.captureId} to ${outputPath}; do not publish it.\n`
+    `Wrote private normalized capture ${capture.captureId} and field manifest; do not publish either file.\n`
   );
 }
 
@@ -253,6 +262,6 @@ function showHelp() {
   process.stdout.write(`  --capture-id ID --captured-at ISO --method METHOD\n`);
   process.stdout.write(`  --request-body-file FILE --invoice-file FILE\n`);
   process.stdout.write(`  --network signet --version COMMIT --interface wallet-api|wavecli\n`);
-  process.stdout.write(`  --recorder NAME\n`);
+  process.stdout.write(`  --recorder NAME --manifest-out FILE\n`);
   process.stdout.write(`\nNo command invokes Wavelength or performs a network/economic action.\n`);
 }

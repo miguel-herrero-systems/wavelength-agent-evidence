@@ -2,7 +2,25 @@
 
 This runbook turns already-exported Wavelength signet data into an offline evidence report. It does not tell the demo to make a payment: the repository does not call `PrepareSend` or `Send` and has no wallet or network integration.
 
-The live step is optional. The bundled fixtures are synthetic and documentation-derived, so they demonstrate the analysis contract but do not prove compatibility with a running Wavelength node.
+The bundled fixtures are synthetic and documentation-derived. A first bounded live compatibility run was completed on signet on 2026-08-01; its reviewed public report is separate from the private source records.
+
+## VPS preparation status — 2026-08-01
+
+This section records the preparation that preceded the bounded live capture. It is not, by itself, evidence of the completed Wavelength payment.
+
+- Wavelength commit `a1094c9f7787d8b91cecc1ee7ae9117e811478d3` was built on the isolated VPS, and two separate signet wallets were created.
+- Bark 0.3.0 commit `46e41188d9d355173a6eece9190866c2b4455002` was installed from the official release binary after verifying SHA-256 `a110e7830c74cc957dd4c295992f3bc0cdb46e6fe9d55e372a2c3f94c8e9f439` against the release `SHA256SUMS` file.
+- Allowed community signet faucets supplied test sats. They have no monetary value.
+- A 500-sat Bark-to-Wavelength BOLT11 funding attempt failed and was revoked. Bark and Wavelength balances did not change, and it was not retried.
+- Bark 0.3.0 rejected a Bitcoin address through the generic `send` command even though the signet guide still lists that destination type. The version-specific `send-onchain` command was used instead.
+- A 1,000-sat on-chain attempt was rejected before broadcast because Bark required 2,116 sats including fees while only 1,500 were available.
+- A separately bounded 350-sat `send-onchain` operation was broadcast and confirmed. Wavelength detected the UTXO as `pending_in_sat: 350`, then refused to board it with the exact operational condition `boarding amount below the minimum boardable floor: confirmed boarding balance 0.00000350 BTC is below the minimum boardable amount 0.00001000 BTC`.
+- Adding only 1,000 sats to that same address was not enough to produce a sendable balance: boarding charged 510 sats and produced an 840-sat VTXO, below the server's 1,000-sat minimum VTXO amount.
+- A second, separately requested 10,000-sat signet faucet output boarded successfully. Wallet B then reported 10,585 confirmed sats.
+- Wallet A created one 1,000-sat amount-bearing Signet BOLT11 invoice. Wallet B executed exactly one `PrepareSend` and one `Send`. Prepare returned a complete quote for `SEND_RAIL_IN_ARK`; the terminal activity was `ENTRY_STATUS_COMPLETE`, `ENTRY_KIND_SEND`, amount `-1000`, fee `0`.
+- The live `InspectActivityResponse` placed settlement under the sibling `swap.settlement_type`, rather than the synthetic fixture's nested `entry.trace` shape. The normalizer was updated through tests to consume only that field and to register the other response fields as discarded unknown paths.
+
+The raw prepare, send, invoice, and inspection records remain private and outside the repository. The completed payment does not establish resource delivery, payer identity, daemon identity, or independent verification of the rail.
 
 ## Safety boundary
 
@@ -61,7 +79,7 @@ The prepare record is expected to carry the documented values corresponding to:
 }
 ```
 
-The terminal record can use the compact `wavecli` shape or the supported wallet API wrapper. A compact example is:
+The terminal record can use the compact `wavecli` shape or the complete `InspectActivityResponse` returned by the pinned wallet API. For the complete response, the normalizer reads the entry from `entry` and settlement only from `swap.settlement_type`; every other unrecognized sibling or nested field is discarded and recorded by JSON Pointer in the private manifest. A compact example is:
 
 ```json
 {
@@ -102,7 +120,7 @@ When `invoice.txt` is available, append:
 --invoice-file /private/tmp/wavelength-evidence-input/invoice.txt
 ```
 
-The CLI requires the operator to declare the network, source commit, and interface because those values are not present in the two exported records. Validation accepts only the pinned signet profile. Normalization replaces the raw `send_intent_id` and optional invoice with SHA-256 commitments. The normalized capture can still contain the preimage from terminal activity, so `capture.private.json` remains confidential and must not be committed or shared.
+The CLI requires the operator to declare the network, source commit, and interface because those values are not present in the two exported records. Validation accepts only the pinned signet profile. Normalization replaces the raw `send_intent_id` and optional invoice with SHA-256 commitments. The normalized capture can still contain the preimage from terminal activity, so `capture.private.json` remains confidential and must not be committed or shared. The command also writes `capture.private.json.normalization-manifest.json` with owner-only permissions. It records the JSON Pointer paths of unknown input fields, never their values. Treat it as confidential and do not publish it.
 
 The normalizer performs no network call. If the command rejects the source version, network, enum, or shape, preserve the failure as a compatibility result and update the profile through review; do not edit the private capture until it merely passes.
 
@@ -125,17 +143,19 @@ Verification shows that the report is the deterministic result of the supplied c
 
 ## 6. Review before sharing
 
-Read both report files and confirm:
+The public report is constructed only from the fields explicitly allowed by its versioned schema. It is not sanitized by searching for a finite blacklist of known secrets. Review the private normalization manifest first: every unknown raw field is discarded from the normalized capture and report, and its path is registered there. Do not copy unknown values into either public report.
+
+Then read both report files and confirm:
 
 - `input.network` is `signet`;
 - `economicAction` is `NOT_EVALUATED`;
 - ambiguous evidence remains `UNKNOWN` rather than being upgraded to `PROVEN`;
-- the report contains no raw invoice, `send_intent_id`, preimage, authorization, macaroon, response body, or personal identifier; and
+- every report field belongs to the versioned report schema; and
 - the actual private values from the source files do not appear in either report.
 
-The report includes an `omittedFields` list, so words such as `preimage` and `send_intent_id` are expected as labels. Check for the secret values themselves.
+The report includes an illustrative `omittedFields` list, so words such as `preimage` and `send_intent_id` are expected as labels. That list is not the enforcement mechanism and is not exhaustive; the allowlist projection and closed report schema are. Check for the secret values themselves.
 
-Share only the reviewed `report.json` and/or `report.md`. Keep `prepare.json`, `activity.json`, `invoice.txt`, and `capture.private.json` private. Follow your environment's approved retention and deletion policy when they are no longer needed.
+Share only the reviewed `report.json` and/or `report.md`. Keep `prepare.json`, `activity.json`, `invoice.txt`, `capture.private.json`, and the normalization manifest private. Follow your environment's approved retention and deletion policy when they are no longer needed.
 
 ## Interpreting a useful live result
 
