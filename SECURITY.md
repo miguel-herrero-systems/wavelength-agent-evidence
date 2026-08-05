@@ -54,6 +54,6 @@ The current implementation uses Node.js built-ins and has no runtime package dep
 
 ## Reporting a vulnerability
 
-Do not include a raw export, unreviewed normalized capture, or secret in a public report. If this repository enables GitHub private vulnerability reporting, use that channel. Otherwise, contact the repository owner privately with a minimal reproducer made from synthetic data. Include the affected commit, Node.js version, expected result, actual result, and whether any secret may have been exposed.
+Do not include a raw export, unreviewed normalized capture, or secret in a public report. If this repository enables GitHub private vulnerability reporting, use that channel. Otherwise, email [contact@hrevn.com](mailto:contact@hrevn.com) with a minimal reproducer made from synthetic data. Include the affected commit, Node.js version, expected result, actual result, and whether any secret may have been exposed.
 
 If a secret was exposed, treat it as compromised and rotate or revoke it through the system that issued it. This demo cannot revoke Wavelength, Lightning, L402, or wallet credentials.
